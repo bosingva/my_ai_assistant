@@ -86,7 +86,7 @@ jobs:
               "docker pull \($IMAGE)",
               "docker stop my-container || true",
               "docker rm my-container || true",
-              "docker run -d --name my-container -p 80:8000 -e OPENAI_API_KEY=\($OPENAI_API_KEY) \($IMAGE)"
+              "docker run -d --name my-container -p 80:8000 -e OPENAI_API_KEY=\($API_KEY) \($IMAGE)"
             ]')
 
           echo "Sending commands via SSM..."

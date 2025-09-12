@@ -27,4 +27,4 @@ OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
 
 aws ecr get-login-password --region '${AWS_REGION}' | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ai-assistant:latest
-docker run -d --name my-container -p 80:8000 -e OPENAI_API_KEY=$OPENAI_API_KEY ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ai-assistant:latest
+docker run -d --name my-container -p 80:8000 -e OPENAI_API_KEY=\($API_KEY) ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ai-assistant:latest
