@@ -1,0 +1,128 @@
+
+name: Docker Build & Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'container/**'
+      - '.github/workflows/build_deploy.yaml'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: ai-assistant
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${ { env.AWS_ROLE_TO_ASSUME } }
+          aws-region: ${{ env.AWS_REGION }}
+    
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::8}
+          docker build --no-cache -t $ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REPOSITORY:latest container/
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+      
+      - name: Push Docker image to ECR
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::8}
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Deploy Docker on EC2 via SSM (multi-instance)
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::8}
+
+          OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
+            --secret-id OPENAI_API_KEY \
+            --query SecretString \
+            --output text)
+
+          # Get ALL EC2 instance IDs
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=home-lab" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text \
+            --region $AWS_REGION)
+
+          echo "Resolved INSTANCE_IDS: $INSTANCE_IDS"
+
+          if [ -z "$INSTANCE_IDS" ]; then
+            echo "❌ No EC2 instances found!"
+            exit 1
+          fi
+
+          # Construct safe JSON array for commands
+          COMMANDS_JSON=$(jq -n \
+            --arg REGION "$AWS_REGION" \
+            --arg ACCOUNT "$AWS_ACCOUNT_ID" \
+            --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
+            --arg API_KEY "$OPENAI_API_KEY" \
+            '[ 
+              "aws ecr get-login-password --region \($REGION) | docker login --username AWS --password-stdin \($ACCOUNT).dkr.ecr.\($REGION).amazonaws.com",
+              "docker pull \($IMAGE)",
+              "docker stop my-container || true",
+              "docker rm my-container || true",
+              "docker run -d --name my-container -p 80:8000 -e OPENAI_API_KEY=\($API_KEY) \($IMAGE)"
+            ]')
+
+          echo "Sending commands via SSM..."
+          COMMAND_ID=$(aws ssm send-command \
+            --targets "Key=tag:Name,Values=home-lab" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=$COMMANDS_JSON" \
+            --region $AWS_REGION \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Waiting for SSM command to complete on all instances..."
+          for id in $INSTANCE_IDS; do
+            echo "▶️ Checking status for instance $id"
+            while true; do
+              STATUS=$(aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "$id" \
+                --region $AWS_REGION \
+                --query "Status" \
+                --output text)
+
+              echo "Instance $id status: $STATUS"
+
+              if [[ "$STATUS" == "Success" || "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+                break
+              fi
+
+              sleep 5
+            done
+          done
+
+          echo "Fetching command outputs..."
+          for id in $INSTANCE_IDS; do
+            echo "=== Output for instance $id ==="
+            aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$id" \
+              --region $AWS_REGION
+          done

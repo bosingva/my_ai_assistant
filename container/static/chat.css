@@ -1,0 +1,5 @@
+body { font-family: Arial, sans-serif; margin: 20px; }
+#chatbox { border: 1px solid #ddd; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
+#chat-form { display: flex; }
+#message { flex: 1; padding: 8px; }
+button { padding: 8px; }
