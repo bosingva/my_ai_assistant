@@ -10,7 +10,7 @@ on:
       - '.github/workflows/build_deploy.yaml'
 
 env:
-  AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   ECR_REPOSITORY: ai-assistant
   AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
