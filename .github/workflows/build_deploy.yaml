@@ -58,7 +58,8 @@ jobs:
           OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
             --secret-id OPENAI_API_KEY \
             --query SecretString \
-            --output text)
+            --output text \
+            --region $AWS_REGION)
 
           # Get ALL EC2 instance IDs
           INSTANCE_IDS=$(aws ec2 describe-instances \
