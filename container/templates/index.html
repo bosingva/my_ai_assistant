@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dimitri's AI Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 400px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      background: #fafafa;
+    }
+    .user { color: blue; margin: 5px 0; }
+    .bot { color: green; margin: 5px 0; }
+    textarea {
+      width: 100%;
+      height: 60px;
+      font-size: 14px;
+    }
+    img {
+      max-width: 100%;
+      border: 1px solid #ddd;
+      margin: 10px 0;
+    }
+  </style>
+  <!-- Markdown rendering library -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <h2>👋 Hi, I'm Dimitri's AI Assistant</h2>
+  <p>
+    You can ask me about Dimitri's past projects, skills, experience or future goals.
+  </p>
+
+  <p style="font-size: 0.9em; color: #555; margin-top: 20px;">
+    ⚙️ This application runs on two EC2 instances behind an Auto Scaling Group (ASG) for
+    high availability and fault tolerance.  
+    Infrastructure code is available here:
+    <a href="{{ repo_url }}" target="_blank">{{ repo_url }}</a>
+  </p>
+
+  <div id="chat"></div>
+  <textarea id="question" placeholder="Type your question..."></textarea><br>
+  <button onclick="ask()">Send</button>
+
+  <script>
+    const textarea = document.getElementById("question");
+
+    textarea.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        ask();
+      }
+    });
+
+    async function ask() {
+      const q = textarea.value.trim();
+      if (!q) return;
+
+      document.getElementById("chat").innerHTML += "<div class='user'><b>You:</b> " + q + "</div>";
+      textarea.value = "";
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q })
+      });
+
+      const data = await response.json();
+      const botMessage = data.answer || data.error;
+
+      // Render Markdown from AI response
+      document.getElementById("chat").innerHTML +=
+        "<div class='bot'><b>Assistant:</b><br>" + marked.parse(botMessage) + "</div>";
+
+      document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+    }
+  </script>
+</body>
+</html>
