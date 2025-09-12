@@ -74,3 +74,16 @@ variable "domain_name" {
   default     = "talk-to-my-ai.click"
   
 }
+
+variable "hosted_zone_id" {
+  description = "The ID of your Route 53 hosted zone"
+  type        = string
+  default = "Z0403436M1TDUKH2S15Z"
+}
+
+variable "ecr_repository" {
+  description = "Your ECR Repository Name"
+  type        = string
+  default     = "ai-assistant" 
+}
+
