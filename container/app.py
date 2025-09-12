@@ -41,7 +41,7 @@ def get_chat_page(request: Request):
         "index.html",
         {
             "request": request,
-            "repo_url": "https://github.com/bosingva/ai_assistant"
+            "repo_url": "https://github.com/bosingva/my_ai_assistant"
         }
     )
 

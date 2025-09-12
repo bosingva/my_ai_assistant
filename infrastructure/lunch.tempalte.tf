@@ -12,6 +12,7 @@ resource "aws_launch_template" "example" {
     name = data.aws_iam_instance_profile.app-server-role.name
   }
 
+  user_data = base64encode(local.user_data_script)
 
   tags = {
     Name = "home-lab"
