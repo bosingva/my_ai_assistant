@@ -59,7 +59,7 @@ jobs:
             --secret-id OPENAI_API_KEY \
             --query SecretString \
             --output text \
-            --region $AWS_REGION)
+            --region $AWS_REGION | tr -d '\n\r')
 
           # Get ALL EC2 instance IDs
           INSTANCE_IDS=$(aws ec2 describe-instances \
