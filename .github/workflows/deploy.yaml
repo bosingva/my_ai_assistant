@@ -1,11 +1,11 @@
-name: Terraform Apply
+name: Insfrastrucure Deploy
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
     paths:
-      - 'terraform/**'
+      - 'infrastructure/**'
       - '.github/workflows/deploy.yaml'
 
 env:
