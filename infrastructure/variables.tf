@@ -51,20 +51,20 @@ variable "alb_target_group_name" {
 variable "desired_capacity" {
   description = "The number of EC2 instances to launch in the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
   
 }
 
 variable "max_size" {
   description = "The maximum size of the Auto Scaling group"
   type        = number
-  default     = 2
+  default     = 3
   
 }
 variable "min_size" {
   description = "The minimum size of the Auto Scaling group"
   type        = number
-  default     = 1
+  default     = 2
   
 }
 
