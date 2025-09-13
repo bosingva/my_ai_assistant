@@ -3,3 +3,4 @@ uvicorn
 jinja2
 python-multipart
 openai
+setuptools>=78.1.1
