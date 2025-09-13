@@ -39,7 +39,7 @@ This infrastructure hosts the AI Assistant at [www.talk-to-my-ai.click](https://
 
 ## Source Code
 All source code is open and available at:
-[https://github.com/bosingva/ai_assistant](https://github.com/bosingva/ai_assistant)
+[https://github.com/bosingva/my_ai_assistant](https://github.com/bosingva/my_ai_assistant)
 
 ## Why This Design
 - **Scalability:** Auto Scaling Group grows/shrinks based on demand.
