@@ -53,12 +53,14 @@ jobs:
       # 🏗️ Build & Push Docker Image
       # -------------------------------
 
+      - name: Set IMAGE_TAG
+        run: echo "IMAGE_TAG=${GITHUB_SHA::8}" >> $GITHUB_ENV
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
         run: |
-          IMAGE_TAG=${GITHUB_SHA::8}
           docker build --no-cache -t $ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REPOSITORY:latest container/
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
           docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
@@ -66,14 +68,13 @@ jobs:
       - name: Scan Docker image for vulnerabilities
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha::8 }}
+          image-ref: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
 
       - name: Push Docker image to ECR
         run: |
-          IMAGE_TAG=${GITHUB_SHA::8}
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
@@ -83,8 +84,6 @@ jobs:
 
       - name: Deploy Docker on EC2 via SSM (multi-instance)
         run: |
-          IMAGE_TAG=${GITHUB_SHA::8}
-
           OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
             --secret-id OPENAI_API_KEY \
             --query SecretString \
@@ -109,7 +108,7 @@ jobs:
           COMMANDS_JSON=$(jq -n \
             --arg REGION "$AWS_REGION" \
             --arg ACCOUNT "$AWS_ACCOUNT_ID" \
-            --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
+            --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
             --arg API_KEY "$OPENAI_API_KEY" \
             '[ 
               "aws ecr get-login-password --region \($REGION) | docker login --username AWS --password-stdin \($ACCOUNT).dkr.ecr.\($REGION).amazonaws.com",
