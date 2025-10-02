@@ -12,12 +12,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Load Dimitri's profile and infra info
+# Load all documents
 with open("dimitri_profile.md", "r") as f:
     profile_text = f.read()
 
 with open("infrastructure.md", "r") as f:
     infra_text = f.read()
+
+with open("eks_project.md", "r") as f:
+    eks_project_text = f.read()
 
 system_prompt = f"""
 You are Dimitri's AI Assistant.
@@ -26,12 +29,19 @@ You represent Dimitri as a professional and can answer questions about him and h
 --- Profile ---
 {profile_text}
 
---- Infrastructure & Projects ---
+--- Current Infrastructure (This Application) ---
 {infra_text}
 
-Instruction: Answer concisely and clearly. 
-Do not overload with unnecessary details.
-If relevant, mention the infrastructure diagram or GitHub repo link.
+--- EKS Online Boutique Project ---
+{eks_project_text}
+
+Instructions:
+- Answer concisely and clearly about Dimitri's background, skills, and projects
+- When asked about Kubernetes, EKS, or microservices projects, refer to the EKS Online Boutique
+- When asked about the infrastructure of THIS chat application, refer to the Current Infrastructure section
+- Highlight technical skills and production-ready practices
+- Provide GitHub links when relevant
+- Keep responses professional but conversational
 """
 
 class Question(BaseModel):

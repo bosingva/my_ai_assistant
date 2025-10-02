@@ -43,6 +43,17 @@
       font-size: 1.8em;
       font-weight: 600;
     }
+    .hero-text ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 15px 0;
+    }
+    .hero-text li {
+      padding: 5px 0;
+    }
+    .hero-text li strong {
+      color: #0073b1;
+    }
     .remark {
       font-size: 0.9em;
       color: #555;
@@ -64,7 +75,7 @@
       background: #ffffff;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      padding: 0;   /* 🔑 removed padding */
+      padding: 0;
     }
     .bot {
       background: #e6e6e6;
@@ -73,7 +84,7 @@
       border-radius: 10px;
       margin: 6px;
       display: block;
-      width: calc(100% - 12px); /* 🔑 fills width neatly */
+      width: calc(100% - 12px);
       box-sizing: border-box;
       font-size: 0.95em;
     }
@@ -103,12 +114,18 @@
       <div class="hero">
         <img src="/static/ai-assistant.jpg" alt="AI Assistant Banner">
         <div class="hero-text">
-          <h2>Meet Dimitri’s AI Assistant</h2>
+          <h2>Meet Dimitri's AI Assistant</h2>
           <p>
-            Ask me about his projects and expertise.
+            Ask me about Dimitri's DevOps experience, technical skills, and recent projects including:
           </p>
+          <ul>
+            <li><strong>This Application</strong> - FastAPI + Docker + Terraform on AWS</li>
+            <li><strong>EKS Online Boutique</strong> - Production Kubernetes with Istio & GitOps</li>
+          </ul>
           <p class="remark">
-            ⚙️ Infrastructure behind this application: <a href="{{ repo_url }}" target="_blank">GitHub</a>
+            ⚙️ Infrastructure: 
+            <a href="https://github.com/bosingva/my_ai_assistant" target="_blank">This App</a> | 
+            <a href="https://github.com/bosingva/eks-online-boutique" target="_blank">EKS Project</a>
           </p>
         </div>
       </div>

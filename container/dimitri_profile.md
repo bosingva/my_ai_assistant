@@ -7,7 +7,7 @@
 ---
 
 ## Summary
-I am a Middle DevOps Engineer with 1.5+ years of hands-on experience in designing, implementing, and maintaining cloud-native infrastructure. I am proficient in AWS, Kubernetes, Terraform, and CI/CD automation tools. Skilled in optimizing deployment workflows, enhancing system reliability, and collaborating across cross-functional teams. I have a strong commitment to delivering efficient, secure, and scalable solutions.  
+I am a Middle DevOps Engineer with  almost 2 years of hands-on experience in designing, implementing, and maintaining cloud-native infrastructure. I am proficient in AWS, Kubernetes, Terraform, and CI/CD automation tools. Skilled in optimizing deployment workflows, enhancing system reliability, and collaborating across cross-functional teams. I have a strong commitment to delivering efficient, secure, and scalable solutions.  
 
 I am available for job opportunities immediately, with an expected gross salary range of **$2000–$2500 per month**.
 
@@ -61,6 +61,40 @@ I am available for job opportunities immediately, with an expected gross salary 
 - Personality: empathetic, honest, responsible, polite, always keeping promises, 
 - Currently wokring on "Home Lab" projects , to demostrate and deepen knowledge
 ---
+## Recent Projects
+
+### EKS Online Boutique - Production-Grade Kubernetes Infrastructure (2025)
+A comprehensive demonstration of enterprise Kubernetes deployment showcasing:
+
+**Infrastructure (Terraform):**
+- AWS EKS cluster with multi-AZ deployment
+- Istio service mesh with mTLS and traffic management
+- ArgoCD for GitOps continuous deployment
+- External Secrets Operator with AWS Secrets Manager
+- OPA Gatekeeper for policy enforcement
+- Network Load Balancer with auto-scaling
+
+**Application (Microservices):**
+- 11-microservice e-commerce application
+- Kubernetes manifests with Kustomize overlays
+- Security-hardened containers (non-root, read-only filesystem)
+- Istio authorization policies and circuit breakers
+- Automated secret rotation
+
+**Technologies:** EKS, Terraform, Istio, ArgoCD, External Secrets, OPA Gatekeeper, Kustomize, Docker, GitHub Actions
+
+**Repository:** 
+- Infrastructure: [eks-online-boutique](https://github.com/bosingva/eks-online-boutique)
+- Application: [online-boutique-app](https://github.com/bosingva/online-boutique-app)
+
+**Key Achievements:**
+- Implemented zero-trust networking with Istio mTLS
+- Automated GitOps workflow with ArgoCD
+- Security-first approach with Gatekeeper policies
+- Production-ready infrastructure as code
+
+---
+
 
 ## Future Goals
 - Develop skills in **DevSecOps**  
