@@ -1,6 +1,4 @@
-# container/app.py - UPDATED VERSION with conversation tracking
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +8,7 @@ import os
 import boto3
 from datetime import datetime
 import json
+import uuid
 
 app = FastAPI()
 
@@ -21,16 +20,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-east-1'))
 ses_client = boto3.client('ses', region_name=os.getenv('AWS_REGION', 'us-east-1'))
 
-# DynamoDB table name (will create via Terraform)
 CONVERSATIONS_TABLE = os.getenv('CONVERSATIONS_TABLE', 'ai-assistant-conversations')
 
-# Load all documents
+# Load documents
 with open("dimitri_profile.md", "r") as f:
     profile_text = f.read()
-
 with open("infrastructure.md", "r") as f:
     infra_text = f.read()
-
 with open("eks_project.md", "r") as f:
     eks_project_text = f.read()
 
@@ -59,60 +55,97 @@ Instructions:
 class Question(BaseModel):
     question: str
 
-def log_conversation(visitor_ip: str, user_agent: str, question: str, answer: str):
-    """
-    Log conversation to DynamoDB
-    """
+def get_or_create_session(request: Request, response: Response):
+    """Get existing session ID from cookie or create new one"""
+    session_id = request.cookies.get('session_id')
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        response.set_cookie(
+            key='session_id',
+            value=session_id,
+            max_age=86400,  # 24 hours
+            httponly=True
+        )
+    return session_id
+
+def get_conversation_history(session_id: str):
+    """Retrieve conversation from DynamoDB"""
     try:
         table = dynamodb.Table(CONVERSATIONS_TABLE)
-        conversation_id = f"{visitor_ip}_{datetime.utcnow().isoformat()}"
+        response = table.get_item(Key={'conversation_id': session_id})
+        
+        if 'Item' in response:
+            return response['Item'].get('messages', [])
+        return []
+    except Exception as e:
+        print(f"Error getting history: {str(e)}")
+        return []
+
+def save_conversation(session_id: str, visitor_ip: str, user_agent: str, messages: list):
+    """Save entire conversation to DynamoDB"""
+    try:
+        table = dynamodb.Table(CONVERSATIONS_TABLE)
         
         table.put_item(
             Item={
-                'conversation_id': conversation_id,
+                'conversation_id': session_id,
                 'timestamp': datetime.utcnow().isoformat(),
                 'visitor_ip': visitor_ip,
                 'user_agent': user_agent,
-                'question': question,
-                'answer': answer,
-                'ttl': int(datetime.utcnow().timestamp()) + (90 * 24 * 60 * 60)  # 90 days retention
+                'messages': messages,
+                'message_count': len(messages),
+                'last_updated': datetime.utcnow().isoformat(),
+                'ttl': int(datetime.utcnow().timestamp()) + (90 * 24 * 60 * 60)
             }
         )
-        return conversation_id
+        return True
     except Exception as e:
-        print(f"Error logging to DynamoDB: {str(e)}")
-        return None
+        print(f"Error saving conversation: {str(e)}")
+        return False
 
-def send_email_notification(conversation_id: str, visitor_ip: str, question: str, answer: str):
-    """
-    Send email notification via AWS SES
-    """
+def send_email_notification(session_id: str, visitor_ip: str, messages: list):
+    """Send email with full conversation"""
     try:
+        # Format all messages
+        conversation_text = "\n\n".join([
+            f"{'User' if msg['role'] == 'user' else 'Assistant'}: {msg['content']}"
+            for msg in messages
+        ])
+        
+        # Create link to view in DynamoDB
+        dynamodb_link = f"https://console.aws.amazon.com/dynamodbv2/home?region=us-east-1#item-explorer?table={CONVERSATIONS_TABLE}&pk={session_id}"
+        
         email_body = f"""
 New conversation with your AI Assistant!
 
-Conversation ID: {conversation_id}
-Timestamp: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
+Session ID: {session_id}
+Started: {messages[0].get('timestamp', 'Unknown')}
+Last Updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
 Visitor IP: {visitor_ip}
+Total Messages: {len(messages)}
 
-Question:
-{question}
+FULL CONVERSATION:
+{'='*60}
 
-Answer:
-{answer}
+{conversation_text}
 
----
-View all conversations in DynamoDB table: {CONVERSATIONS_TABLE}
+{'='*60}
+
+View in DynamoDB Console:
+{dynamodb_link}
+
+Or query via AWS CLI:
+aws dynamodb get-item --table-name {CONVERSATIONS_TABLE} --key '{{"conversation_id":{{"S":"{session_id}"}}}}' --region us-east-1
 """
         
         response = ses_client.send_email(
-            Source='noreply@talk-to-my-ai.click',  # Must be verified in SES
+            Source='korgalidzed@gmail.com',
             Destination={
                 'ToAddresses': ['korgalidzed@gmail.com']
             },
             Message={
                 'Subject': {
-                    'Data': f'AI Assistant: New Conversation from {visitor_ip}',
+                    'Data': f'AI Assistant: Conversation Update ({len(messages)} messages) - {visitor_ip}',
                     'Charset': 'UTF-8'
                 },
                 'Body': {
@@ -140,29 +173,52 @@ def get_chat_page(request: Request):
     )
 
 @app.post("/ask")
-def ask_question(q: Question, request: Request):
+def ask_question(q: Question, request: Request, response: Response):
     try:
-        # Get visitor information
+        # Get or create session
+        session_id = get_or_create_session(request, response)
         visitor_ip = request.client.host
         user_agent = request.headers.get('user-agent', 'Unknown')
         
+        # Get conversation history
+        messages = get_conversation_history(session_id)
+        
+        # Add new user message
+        user_message = {
+            'role': 'user',
+            'content': q.question,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        messages.append(user_message)
+        
         # Call OpenAI
-        response = client.chat.completions.create(
+        openai_messages = [{"role": "system", "content": system_prompt}]
+        openai_messages.extend([
+            {"role": msg['role'], "content": msg['content']} 
+            for msg in messages
+        ])
+        
+        openai_response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": q.question}
-            ]
+            messages=openai_messages
         )
         
-        answer = response.choices[0].message.content
+        answer = openai_response.choices[0].message.content
         
-        # Log to DynamoDB
-        conversation_id = log_conversation(visitor_ip, user_agent, q.question, answer)
+        # Add assistant response
+        assistant_message = {
+            'role': 'assistant',
+            'content': answer,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        messages.append(assistant_message)
         
-        # Send email notification
-        if conversation_id:
-            send_email_notification(conversation_id, visitor_ip, q.question, answer)
+        # Save full conversation
+        save_conversation(session_id, visitor_ip, user_agent, messages)
+        
+        # Send email every 2 messages (to avoid spam)
+        if len(messages) % 2 == 0:  # Every Q&A pair
+            send_email_notification(session_id, visitor_ip, messages)
         
         return {"answer": answer}
     except Exception as e:
@@ -170,23 +226,4 @@ def ask_question(q: Question, request: Request):
 
 @app.get("/health")
 def health_check():
-    """Health check endpoint for ALB"""
     return {"status": "healthy"}
-
-@app.get("/conversations")
-def get_recent_conversations():
-    """
-    API endpoint to view recent conversations (optional - for your dashboard)
-    Protected by IP or add authentication
-    """
-    try:
-        table = dynamodb.Table(CONVERSATIONS_TABLE)
-        response = table.scan(Limit=50)
-        items = response.get('Items', [])
-        
-        # Sort by timestamp
-        items.sort(key=lambda x: x['timestamp'], reverse=True)
-        
-        return {"conversations": items[:10]}  # Return last 10
-    except Exception as e:
-        return {"error": str(e)}
