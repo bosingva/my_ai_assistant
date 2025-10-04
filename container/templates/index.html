@@ -80,7 +80,7 @@
     /* Message container for alignment */
     .message-wrapper {
       display: flex;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
       animation: fadeIn 0.3s ease-in;
     }
     
@@ -89,7 +89,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* User messages - right aligned, blue */
+    /* User messages - right aligned, blue bubble */
     .message-wrapper.user {
       justify-content: flex-end;
     }
@@ -105,20 +105,18 @@
       word-wrap: break-word;
     }
     
-    /* Assistant messages - left aligned, gray */
+    /* Assistant messages - left aligned, NO background */
     .message-wrapper.assistant {
       justify-content: flex-start;
     }
     
     .bot-message {
-      background: #e6e6e6;
-      color: black;
-      padding: 10px 15px;
-      border-radius: 18px 18px 18px 4px;
-      max-width: 70%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #333;
+      padding: 5px 10px;
+      max-width: 85%;
       font-size: 0.95em;
       word-wrap: break-word;
+      line-height: 1.6;
     }
     
     /* Markdown content styling */
@@ -132,6 +130,7 @@
       border-radius: 4px;
       font-family: 'Courier New', monospace;
       font-size: 0.9em;
+      border: 1px solid #e0e0e0;
     }
     
     .bot-message pre {
@@ -147,6 +146,7 @@
       background: transparent;
       padding: 0;
       color: inherit;
+      border: none;
     }
     
     .bot-message ul, .bot-message ol {
@@ -156,6 +156,20 @@
     
     .bot-message li {
       margin: 5px 0;
+    }
+    
+    .bot-message strong {
+      color: #0073b1;
+      font-weight: 600;
+    }
+    
+    .bot-message a {
+      color: #0073b1;
+      text-decoration: none;
+    }
+    
+    .bot-message a:hover {
+      text-decoration: underline;
     }
     
     textarea {
@@ -188,9 +202,6 @@
       align-items: center;
       gap: 5px;
       padding: 10px 15px;
-      background: #e6e6e6;
-      border-radius: 18px 18px 18px 4px;
-      max-width: 60px;
     }
     
     .typing-indicator.active {
