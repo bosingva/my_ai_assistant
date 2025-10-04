@@ -105,32 +105,36 @@
       word-wrap: break-word;
     }
     
-    /* Assistant messages - left aligned, NO background */
+    /* Assistant messages - left aligned, NO background, just plain text */
     .message-wrapper.assistant {
       justify-content: flex-start;
     }
     
     .bot-message {
       color: #333;
-      padding: 5px 10px;
-      max-width: 85%;
+      padding: 5px 0px;
+      max-width: 90%;
       font-size: 0.95em;
       word-wrap: break-word;
       line-height: 1.6;
     }
     
-    /* Markdown content styling */
+    /* Markdown content styling for bot messages */
     .bot-message p {
       margin: 0.5em 0;
     }
     
+    .bot-message p:first-child {
+      margin-top: 0;
+    }
+    
     .bot-message code {
-      background: #f5f5f5;
+      background: #f0f0f0;
       padding: 2px 6px;
       border-radius: 4px;
       font-family: 'Courier New', monospace;
       font-size: 0.9em;
-      border: 1px solid #e0e0e0;
+      border: 1px solid #d0d0d0;
     }
     
     .bot-message pre {
@@ -172,6 +176,12 @@
       text-decoration: underline;
     }
     
+    .bot-message h1, .bot-message h2, .bot-message h3 {
+      color: #0073b1;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+    
     textarea {
       width: 100%;
       height: 60px;
@@ -181,6 +191,7 @@
       border: 1px solid #ccc;
       resize: none;
       font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
     }
     
     textarea:focus {
@@ -201,7 +212,7 @@
       display: none;
       align-items: center;
       gap: 5px;
-      padding: 10px 15px;
+      padding: 10px 0px;
     }
     
     .typing-indicator.active {
@@ -258,7 +269,7 @@
 
     <!-- Chat area -->
     <div id=\"chat\"></div>
-    <textarea id=\"question\" placeholder=\"💬 Type your question and press Enter...\"></textarea><br>
+    <textarea id=\"question\" placeholder=\"💬 Type your question and press Enter...\"></textarea>
 
     <footer>
       © <span id=\"year\"></span> Dimitri Korgalidze – All rights reserved.
@@ -321,7 +332,10 @@
         const data = await response.json();
         
         // Remove typing indicator
-        document.getElementById(typingId)?.remove();
+        const typingElement = document.getElementById(typingId);
+        if (typingElement) {
+          typingElement.remove();
+        }
         
         // Display assistant response
         const botMessage = data.answer || data.error || \"Sorry, I couldn't process your request.\";
@@ -329,7 +343,10 @@
         
       } catch (error) {
         // Remove typing indicator
-        document.getElementById(typingId)?.remove();
+        const typingElement = document.getElementById(typingId);
+        if (typingElement) {
+          typingElement.remove();
+        }
         addMessage(\"Sorry, there was an error processing your request.\", 'assistant');
       }
     }
