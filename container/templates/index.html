@@ -1,7 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
   <title>Dimitri's AI Assistant</title>
-  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap\" rel=\"stylesheet\">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -68,120 +69,23 @@
     }
     #chat {
       border: 1px solid #ccc;
-      height: 400px;
+      height: 250px;
       overflow-y: auto;
       margin-bottom: 10px;
-      background: #ffffff;
+      background: #ffffff; /* stays white */
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      padding: 15px;
+      padding: 8px;
     }
-    
-    /* Message container for alignment */
-    .message-wrapper {
-      display: flex;
-      margin-bottom: 15px;
-      animation: fadeIn 0.3s ease-in;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* User messages - right aligned, blue bubble */
-    .message-wrapper.user {
-      justify-content: flex-end;
-    }
-    
-    .user-message {
-      background: linear-gradient(135deg, #0073b1, #005a8d);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 18px 18px 4px 18px;
-      max-width: 70%;
-      box-shadow: 0 2px 8px rgba(0,115,177,0.3);
+    .bot, .user {
+      background: transparent; /* no grey, no bubbles */
+      color: black;
+      padding: 4px 0;
+      margin: 4px 0;
+      display: block;
+      width: 100%;
       font-size: 0.95em;
-      word-wrap: break-word;
     }
-    
-    /* Assistant messages - left aligned, NO background, just plain text */
-    .message-wrapper.assistant {
-      justify-content: flex-start;
-    }
-    
-    .bot-message {
-      color: #333;
-      padding: 5px 0px;
-      max-width: 90%;
-      font-size: 0.95em;
-      word-wrap: break-word;
-      line-height: 1.6;
-    }
-    
-    /* Markdown content styling for bot messages */
-    .bot-message p {
-      margin: 0.5em 0;
-    }
-    
-    .bot-message p:first-child {
-      margin-top: 0;
-    }
-    
-    .bot-message code {
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9em;
-      border: 1px solid #d0d0d0;
-    }
-    
-    .bot-message pre {
-      background: #2d2d2d;
-      color: #f8f8f2;
-      padding: 12px;
-      border-radius: 6px;
-      overflow-x: auto;
-      margin: 10px 0;
-    }
-    
-    .bot-message pre code {
-      background: transparent;
-      padding: 0;
-      color: inherit;
-      border: none;
-    }
-    
-    .bot-message ul, .bot-message ol {
-      margin: 10px 0;
-      padding-left: 25px;
-    }
-    
-    .bot-message li {
-      margin: 5px 0;
-    }
-    
-    .bot-message strong {
-      color: #0073b1;
-      font-weight: 600;
-    }
-    
-    .bot-message a {
-      color: #0073b1;
-      text-decoration: none;
-    }
-    
-    .bot-message a:hover {
-      text-decoration: underline;
-    }
-    
-    .bot-message h1, .bot-message h2, .bot-message h3 {
-      color: #0073b1;
-      margin-top: 15px;
-      margin-bottom: 8px;
-    }
-    
     textarea {
       width: 100%;
       height: 60px;
@@ -190,66 +94,24 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       resize: none;
-      font-family: 'Inter', sans-serif;
-      box-sizing: border-box;
     }
-    
-    textarea:focus {
-      outline: none;
-      border-color: #0073b1;
-      box-shadow: 0 0 0 2px rgba(0,115,177,0.1);
-    }
-    
     footer {
       text-align: center;
       font-size: 0.8em;
       color: #555;
       margin-top: 30px;
     }
-    
-    /* Loading indicator */
-    .typing-indicator {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      padding: 10px 0px;
-    }
-    
-    .typing-indicator.active {
-      display: flex;
-    }
-    
-    .typing-indicator span {
-      width: 8px;
-      height: 8px;
-      background: #999;
-      border-radius: 50%;
-      animation: typing 1.4s infinite;
-    }
-    
-    .typing-indicator span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .typing-indicator span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-      0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-10px); }
-    }
   </style>
   <!-- Markdown rendering -->
-  <script src=\"https://cdn.jsdelivr.net/npm/marked/marked.min.js\"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div class=\"container\">
+  <div class="container">
     <!-- Hero section -->
     <header>
-      <div class=\"hero\">
-        <img src=\"/static/ai-assistant.jpg\" alt=\"AI Assistant Banner\">
-        <div class=\"hero-text\">
+      <div class="hero">
+        <img src="/static/ai-assistant.jpg" alt="AI Assistant Banner">
+        <div class="hero-text">
           <h2>Meet Dimitri's AI Assistant</h2>
           <p>
             Ask me about Dimitri's DevOps experience, technical skills, and recent projects including:
@@ -258,41 +120,32 @@
             <li><strong>This Application</strong> - FastAPI + Docker + Terraform on AWS</li>
             <li><strong>EKS Online Boutique</strong> - Production Kubernetes with Istio & GitOps</li>
           </ul>
-          <p class=\"remark\">
+          <p class="remark">
             ⚙️ Infrastructure: 
-            <a href=\"https://github.com/bosingva/my_ai_assistant\" target=\"_blank\">This App</a> | 
-            <a href=\"https://github.com/bosingva/eks-online-boutique\" target=\"_blank\">EKS Project</a>
+            <a href="https://github.com/bosingva/my_ai_assistant" target="_blank">This App</a> | 
+            <a href="https://github.com/bosingva/eks-online-boutique" target="_blank">EKS Project</a>
           </p>
         </div>
       </div>
     </header>
 
     <!-- Chat area -->
-    <div id=\"chat\"></div>
-    <textarea id=\"question\" placeholder=\"💬 Type your question and press Enter...\"></textarea>
+    <div id="chat"></div>
+    <textarea id="question" placeholder="💬 Type your question and press Enter..."></textarea><br>
 
     <footer>
-      © <span id=\"year\"></span> Dimitri Korgalidze – All rights reserved.
+      © <span id="year"></span> Dimitri Korgalidze – All rights reserved.
     </footer>
   </div>
 
   <script>
     // Auto-update footer year
-    document.getElementById(\"year\").textContent = new Date().getFullYear();
+    document.getElementById("year").textContent = new Date().getFullYear();
 
-    const textarea = document.getElementById(\"question\");
-    const chatbox = document.getElementById(\"chat\");
+    const textarea = document.getElementById("question");
 
-    // Configure marked options for better rendering
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      headerIds: false,
-      mangle: false
-    });
-
-    textarea.addEventListener(\"keydown\", function(event) {
-      if (event.key === \"Enter\" && !event.shiftKey) {
+    textarea.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         ask();
       }
@@ -302,73 +155,26 @@
       const q = textarea.value.trim();
       if (!q) return;
 
-      // Display user message
-      addMessage(q, 'user');
-      
-      // Clear input
-      textarea.value = \"\";
+      // Append user message
+      document.getElementById("chat").innerHTML +=
+        "<div class='user'>" + marked.parse(q) + "</div>";
 
-      // Show typing indicator
-      const typingId = 'typing-' + Date.now();
-      chatbox.innerHTML += `
-        <div class=\"message-wrapper assistant\" id=\"${typingId}\">
-          <div class=\"typing-indicator active\">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      `;
-      chatbox.scrollTop = chatbox.scrollHeight;
+      // Clear the input box after sending
+      textarea.value = "";
 
-      try {
-        // Send to backend
-        const response = await fetch(\"/ask\", {
-          method: \"POST\",
-          headers: { \"Content-Type\": \"application/json\" },
-          body: JSON.stringify({ question: q })
-        });
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q })
+      });
 
-        const data = await response.json();
-        
-        // Remove typing indicator
-        const typingElement = document.getElementById(typingId);
-        if (typingElement) {
-          typingElement.remove();
-        }
-        
-        // Display assistant response
-        const botMessage = data.answer || data.error || \"Sorry, I couldn't process your request.\";
-        addMessage(botMessage, 'assistant');
-        
-      } catch (error) {
-        // Remove typing indicator
-        const typingElement = document.getElementById(typingId);
-        if (typingElement) {
-          typingElement.remove();
-        }
-        addMessage(\"Sorry, there was an error processing your request.\", 'assistant');
-      }
-    }
+      const data = await response.json();
+      const botMessage = data.answer || data.error;
 
-    function addMessage(content, type) {
-      const messageWrapper = document.createElement('div');
-      messageWrapper.className = `message-wrapper ${type}`;
-      
-      const messageDiv = document.createElement('div');
-      messageDiv.className = type === 'user' ? 'user-message' : 'bot-message';
-      
-      if (type === 'user') {
-        // User messages: plain text
-        messageDiv.textContent = content;
-      } else {
-        // Assistant messages: render markdown
-        messageDiv.innerHTML = marked.parse(content);
-      }
-      
-      messageWrapper.appendChild(messageDiv);
-      chatbox.appendChild(messageWrapper);
-      chatbox.scrollTop = chatbox.scrollHeight;
+      document.getElementById("chat").innerHTML +=
+        "<div class='bot'>" + marked.parse(botMessage) + "</div>";
+
+      document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
     }
   </script>
 </body>
